@@ -101,13 +101,11 @@ export default function DonorDetail() {
                             </tr>
                         </tbody>
                     </Table> */}
-                    <div className="d-flex">
-                        <div>
-                            <div>name : {donorData[0].userName}</div>
-                            <div>Donor Id : {donorData[0].donnerid}</div>
-                            <div>Number : {donorData[0].userNumber}</div>
-                            <div>Blood group : {donorData[0].bgroup}</div>
-                        </div>
+                    <div>
+                        <div>name : {donorData[0].userName}</div>
+                        <div>Donor Id : {donorData[0].donnerid}</div>
+                        <div>Number : {donorData[0].userNumber}</div>
+                        <div>Blood group : {donorData[0].bgroup}</div>
                     </div>
                 </div>
             ) : (
