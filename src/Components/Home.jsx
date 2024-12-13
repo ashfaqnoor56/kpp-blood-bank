@@ -152,7 +152,7 @@ function Home() {
                     <QRCode
                       size={256}
                       style={{ height: "auto", width: "100px" }}
-                      value={`https://bloodbank-drab.vercel.app/${a.donnerid}`}
+                      value={`https://bloodbank-drab.vercel.app/${a.id}`}
                       viewBox={`0 0 256 256`}
                     />}</td>
                   <td><Link to={`/donordetail/${a.id}`}>View Details</Link></td>
