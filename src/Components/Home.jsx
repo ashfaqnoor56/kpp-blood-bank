@@ -47,17 +47,17 @@ function Home() {
     navi('/addblood');
     // navi('/signup')
   };
-  const qrCodeCreate = async (id) => {
-    console.log('qr code');
-    return (
-      <QRCode
-        size={50}
-        style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-        value={id}
-        viewBox={`0 0 50 50`}
-      />
-    )
-  }
+  // const qrCodeCreate = async (id) => {
+  //   console.log('qr code');
+  //   return (
+  //     <QRCode
+  //       size={50}
+  //       style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+  //       value={id}
+  //       viewBox={`0 0 50 50`}
+  //     />
+  //   )
+  // }
   const handleSubmit = async (e) => {
 
     //donnerid
