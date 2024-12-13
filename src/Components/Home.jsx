@@ -2,13 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Modal from 'react-modal';
-import Col from 'react-bootstrap/Col';
-import Form from 'react-bootstrap/Form';
-import Row from 'react-bootstrap/Row';
-import Table from 'react-bootstrap/Table';
+import { Col, Form, Row, Table, Spinner, Button } from 'react-bootstrap';
 import axios from 'axios';
 import QRCode from "react-qr-code";
-import Spinner from 'react-bootstrap/Spinner';
+import ModalDeleteData from './ModalDeleteData';
 
 Modal.setAppElement('#root');
 
@@ -38,6 +35,11 @@ function Home() {
   const [count, setCount] = useState('');
 
   const [modalIsOpen, setIsOpen] = useState(false);
+
+  const [showModal, setShowModal] = useState(false);  // To toggle modal visibility
+  const [itemToDelete, setItemToDelete] = useState(null);  // Store the item to be deleted
+
+
   const navi = useNavigate();
 
   const openModal = () => setIsOpen(true);
@@ -91,19 +93,88 @@ function Home() {
       setLoading(true)
       const response = await axios.get('https://67593f4e60576a194d140021.mockapi.io/donner')
       setApiData(response.data)
-      setDonnerid(`Donor-${response.data.length + 1}`)
+      let data = response.data
+      // alert(data[data.length-1].id)
+      let idNumber = Number(data[data.length-1].id)
+      // alert(idNumber, `Donor-${idNumber + 1}`)
+      // console.log(idNumber, `Donor-${idNumber + 1}`)
+      setDonnerid(`Donor-${idNumber + 1}`)
       setLoading(false)
     } catch (error) {
       alert(error)
     }
-
   }
   useEffect(() => {
     getApiData()
   }, [])
   // let qrIdValue = `http://localhost:5173/donordetail/${id}`
+  console.log(apiData);
+  const filterBlood = (apidata, bloodCaps, bloodSmall) => {
+    let data = apiData.filter(item => item.bgroup === bloodCaps || item.bgroup === bloodSmall)
+    return data
+  }
+  // let filterBloodTypes = apiData.filter(item => item.bgroup === 'A+' || item.bgroup === 'a+')
+  // console.log(filterBloodTypes);
+  const bloodAPositive = filterBlood(apiData, 'A+', 'a+')
+  const bloodANegative = filterBlood(apiData, 'A-', 'a-')
+  const bloodBPositive = filterBlood(apiData, 'B+', 'b+')
+  const bloodBNegative = filterBlood(apiData, 'B-', 'b-')
+  const bloodOPositive = filterBlood(apiData, 'O+', 'o+')
+  const bloodONegative = filterBlood(apiData, 'O-', 'o-')
+  const bloodABPositive = filterBlood(apiData, 'AB+', 'ab+')
+  const bloodABNegative = filterBlood(apiData, 'AB-', 'ab-')
+  // console.log(bloodAPositive);
+
+  // const handleDelete = async(id) => {
+  //   try {
+  //     setLoading(true)
+  //     await axios.delete(`https://67593f4e60576a194d140021.mockapi.io/donner/${id}`)
+  //       .then(()=>{
+  //         alert('successfully donor data deleted')
+  //         getApiData();
+  //       })
+  //     setLoading(false)
+  //   } catch (error) {
+  //     alert(error)
+  //   }
+  // }
+  const handleDelete = async (itemId) => {
+    try {
+      // Call the API to delete the item
+      const response = await fetch(`https://67593f4e60576a194d140021.mockapi.io/donner/${itemId}`, {
+        method: 'DELETE', // DELETE request to the API
+      });
+
+      if (response.ok) {
+        // If successful, you can update the state (e.g., remove the item from the list)
+        console.log('Item deleted successfully');
+        alert('donro is deleted')
+        // Optionally update the state to remove the deleted item from the UI
+      } else {
+        console.error('Failed to delete item');
+      }
+    } catch (error) {
+      console.error('Error occurred while deleting item:', error);
+    } finally {
+      // Close the modal after the deletion attempt
+      handleCloseModal();
+    }
+  };
+
+
+  const handleShowModal = (itemId) => {
+    setItemToDelete(itemId);
+    setShowModal(true);
+  };
+
+  // Function to close modal
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setItemToDelete(null);
+    getApiData()
+  };
   return (
-    <div>
+    <div className='container'>
       {/* {qrIdValue &&
         <QRCode
           size={50}
@@ -120,46 +191,154 @@ function Home() {
         </div>
 
         {loading ?
-           <div className='text-danger'>
-             <Spinner animation="border" role="status">
-            <span className="visually-hidden fs-1">Loading...</span>
-          </Spinner>
-           </div>:
+          <div className='text-danger'>
+            <Spinner animation="border" role="status">
+              <span className="visually-hidden fs-1">Loading...</span>
+            </Spinner>
+          </div> :
 
-          <Table striped bordered hover>
-            <thead>
-              <tr>
-                <th>S.no</th>
-                <th>Donor ID</th>
-                <th>Name</th>
-                <th>Blood Group</th>
-                <th>Mobile Number</th>
-                <th>Date & Time</th>
-                <th>QR code</th>
-                <th>Donor details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {apiData && apiData.map((a, index) =>
-                <tr key={index}>
-                  <td>{index + 1}</td>
-                  <td>{a.donnerid}</td>
-                  <td>{a.userName}</td>
-                  <td>{a.bgroup}</td>
-                  <td>{a.userNumber}</td>
-                  <td>{a.datetime}</td>
-                  <td>{
-                    <QRCode
-                      size={256}
-                      style={{ height: "auto", width: "100px" }}
-                      value={`https://bloodbank-drab.vercel.app/donordetail/${a.id}`}
-                      viewBox={`0 0 256 256`}
-                    />}</td>
-                  <td><Link to={`/donordetail/${a.id}`}>View Details</Link></td>
+          <div style={{ maxHeight: '200px', overflow: 'auto' }}>
+            <Table striped bordered hover>
+              <thead>
+                <tr>
+                  <th>S.no</th>
+                  <th>Donor ID</th>
+                  <th>Name</th>
+                  <th>Blood Group</th>
+                  <th>Mobile Number</th>
+                  <th>Date & Time</th>
+                  <th>QR code</th>
+                  <th>Donor details</th>
+                  <th>Delete</th>
                 </tr>
-              )}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {apiData && apiData.map((a, index) =>
+                  <tr key={index}>
+                    <td>{index + 1}</td>
+                    <td>{a.donnerid}</td>
+                    <td>{a.userName}</td>
+                    <td>{a.bgroup}</td>
+                    <td>{a.userNumber}</td>
+                    <td>{a.datetime}</td>
+                    <td>{
+                      <QRCode
+                        size={256}
+                        style={{ height: "auto", width: "20px" }}
+                        value={`https://bloodbank-drab.vercel.app/donordetail/${a.id}`}
+                        viewBox={`0 0 256 256`}
+                      />}</td>
+                    <td><Link to={`/donordetail/${a.id}`}>View Details</Link></td>
+                    <td><Button variant='danger' onClick={() => handleShowModal(a.id)}>Delete</Button></td>
+                  </tr>
+                )}
+              </tbody>
+            </Table>
+          </div>
+        }
+
+      </div>
+      <div className="card my-3">
+        <h5 className='text-center'>Blood Counts</h5>
+        <div className='d-flex justify-content-between d-none'>
+
+          <button className='btn btn-warning' onClick={openModal}>Blood Donor</button>
+          <button className='btn btn-success' onClick={handleNavigate}>Add blood</button>
+        </div>
+
+        {loading ?
+          <div className='text-danger'>
+            <Spinner animation="border" role="status">
+              <span className="visually-hidden fs-1">Loading...</span>
+            </Spinner>
+          </div> :
+
+          <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+            <Table striped bordered hover>
+              <thead>
+                <tr>
+                  <th>Count</th>
+                  <th>A+</th>
+                  <th>A-</th>
+                  <th>B+</th>
+                  <th>B-</th>
+                  <th>AB+</th>
+                  <th>AB-</th>
+                  <th>O+</th>
+                  <th>O-</th>
+                </tr>
+              </thead>
+              <tbody>
+                {/* {apiData && apiData.map((a, index) => */}
+                <tr >
+                  <td>Count</td>
+                  <td>{bloodAPositive.length}</td>
+                  <td>{bloodANegative.length}</td>
+                  <td>{bloodBPositive.length}</td>
+                  <td>{bloodBNegative.length}</td>
+                  <td>{bloodOPositive.length}</td>
+                  <td>{bloodONegative.length}</td>
+                  <td>{bloodABPositive.length}</td>
+                  <td>{bloodABNegative.length}</td>
+
+                </tr>
+                {/* )} */}
+              </tbody>
+            </Table>
+          </div>
+        }
+
+      </div>
+      <div className="card d-none">
+        <div className='d-flex justify-content-between'>
+
+          <button className='btn btn-warning' onClick={openModal}>Blood Donor</button>
+          <button className='btn btn-success' onClick={handleNavigate}>Add blood</button>
+        </div>
+
+        {loading ?
+          <div className='text-danger'>
+            <Spinner animation="border" role="status">
+              <span className="visually-hidden fs-1">Loading...</span>
+            </Spinner>
+          </div> :
+
+          <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+            <Table striped bordered hover>
+              <thead>
+                <tr>
+                  <th>S.no</th>
+                  <th>Donor ID</th>
+                  <th>Name</th>
+                  <th>Blood Group</th>
+                  <th>Mobile Number</th>
+                  <th>Date & Time</th>
+                  <th>QR code</th>
+                  <th>Donor details</th>
+                </tr>
+              </thead>
+              <tbody>
+                {apiData && apiData.map((a, index) =>
+                  <tr key={index}>
+                    <td>{index + 1}</td>
+                    <td>{a.donnerid}</td>
+                    <td>{a.userName}</td>
+                    <td>{a.bgroup}</td>
+                    <td>{a.userNumber}</td>
+                    <td>{a.datetime}</td>
+                    <td>{
+                      <QRCode
+                        size={256}
+                        style={{ height: "auto", width: "20px" }}
+                        value={`https://bloodbank-drab.vercel.app/donordetail/${a.id}`}
+                        viewBox={`0 0 256 256`}
+                      />}</td>
+                    <td><Link to={`/donordetail/${a.id}`}>View Details</Link></td>
+                  </tr>
+                )}
+              </tbody>
+            </Table>
+          </div>
         }
 
       </div>
@@ -187,7 +366,7 @@ function Home() {
                   type="text"
                   placeholder="DonerId"
                   value={donnerid}
-                  onChange={(e) => setDonnerid(e.target.value)}
+                  // onChange={(e) => setDonnerid(e.target.value)}
                   disabled
                 />
               </Col>
@@ -256,9 +435,17 @@ function Home() {
             </div>
           </Form>
         </Modal>
+        <ModalDeleteData
+          show={showModal}
+          onClose={handleCloseModal}
+          onDelete={handleDelete}
+          itemId={itemToDelete}
+        />
       </div>
+
+
       {/* <button onClick={handleNavigate} className='bg-warning'>Signup</button> */}
-    </div>
+    </div >
   );
 }
 
