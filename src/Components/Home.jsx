@@ -8,6 +8,7 @@ import Row from 'react-bootstrap/Row';
 import Table from 'react-bootstrap/Table';
 import axios from 'axios';
 import QRCode from "react-qr-code";
+import Spinner from 'react-bootstrap/Spinner';
 
 Modal.setAppElement('#root');
 
@@ -119,7 +120,11 @@ function Home() {
         </div>
 
         {loading ?
-          <div className='text-warning fs-1'>Loading...</div> :
+           <div className='text-danger'>
+             <Spinner animation="border" role="status">
+            <span className="visually-hidden fs-1">Loading...</span>
+          </Spinner>
+           </div>:
 
           <Table striped bordered hover>
             <thead>
@@ -147,7 +152,7 @@ function Home() {
                     <QRCode
                       size={256}
                       style={{ height: "auto", width: "100px" }}
-                      value={`http://localhost:5173/donordetail/${a.donnerid}`}
+                      value={`https://bloodbank-dben3tbad-naufans-projects.vercel.app/${a.donnerid}`}
                       viewBox={`0 0 256 256`}
                     />}</td>
                   <td><Link to={`/donordetail/${a.id}`}>View Details</Link></td>
